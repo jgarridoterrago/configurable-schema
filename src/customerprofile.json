@@ -1,0 +1,79 @@
+{
+	"classes": [{
+		"className": "assetsForApproval",
+		"properties": [{
+				"column": "assetid",
+				"name": "assetid",
+				"label": "Asset",
+				"type": "string"
+			},
+			{
+				"column": "title",
+				"name": "title",
+				"label": "Title",
+				"type": "string"
+			},
+			{
+				"column": "type",
+				"name": "type",
+				"label": "Type",
+				"type": "string"
+			},
+			{
+				"column": "locationdesc",
+				"name": "locationdesc",
+				"label": "Location Description",
+				"type": "string"
+			},
+			{
+				"column": "location",
+				"name": "location",
+				"label": "Location",
+				"type": "string"
+			},
+			{
+				"column": "assetattributes",
+				"name": "assetattributes",
+				"label": "Asset Attributes",
+				"type": "string"
+			},
+			{
+				"column": "revisions",
+				"name": "revisions",
+				"label": "Revision",
+				"type": "string"
+			},
+			{
+				"column": "project",
+				"name": "Project",
+				"label": "Project",
+				"type": "object",
+				"resolver": {
+					"table": "assets",
+					"schema": "public",
+					"columns": ["assetid"],
+					"params": ["assetid"]
+				}
+			}
+		]
+	}, {
+		"className": "project",
+		"properties": [{
+			"column": "assetid",
+			"name": "assetid",
+			"label": "Asset",
+			"type": "string"
+		},
+		{
+			"column": "projectid",
+			"name": "projectid",
+			"label": "Project",
+			"type": "string"
+		},{
+			"column": "title",
+			"name": "title",
+			"label": "Title",
+			"type": "string"
+		}]
+	}]
+}
