@@ -1,5 +1,26 @@
 {
-	"classes": [{
+	"classes": [
+		{
+			"className": "project",
+			"properties": [{
+				"column": "assetid",
+				"name": "assetid",
+				"label": "Asset",
+				"type": "string"
+			},
+			{
+				"column": "projectid",
+				"name": "projectid",
+				"label": "Project",
+				"type": "string"
+			},{
+				"column": "title",
+				"name": "title",
+				"label": "Title",
+				"type": "string"
+			}]
+		},
+		{
 		"className": "assetsForApproval",
 		"properties": [{
 				"column": "assetid",
@@ -45,7 +66,7 @@
 			},
 			{
 				"column": "project",
-				"name": "Project",
+				"name": "project",
 				"label": "Project",
 				"type": "object",
 				"resolver": {
@@ -56,24 +77,6 @@
 				}
 			}
 		]
-	}, {
-		"className": "project",
-		"properties": [{
-			"column": "assetid",
-			"name": "assetid",
-			"label": "Asset",
-			"type": "string"
-		},
-		{
-			"column": "projectid",
-			"name": "projectid",
-			"label": "Project",
-			"type": "string"
-		},{
-			"column": "title",
-			"name": "title",
-			"label": "Title",
-			"type": "string"
-		}]
-	}]
+	}
+]
 }

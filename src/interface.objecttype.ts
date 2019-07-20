@@ -1,4 +1,4 @@
-interface ClassType {
+export interface ClassType {
     name: string
     column: string;
     label: string;

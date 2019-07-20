@@ -6,30 +6,36 @@ import { CommonFieldConfig, asNexusMethod } from "nexus/dist/core";
 import { GraphQLDateTime } from 'graphql-iso-date';
 import GraphQLJSON from 'graphql-type-json';
 import knex from "./src/connection";
+import { ClassType } from "./src/interface.objecttype"
+import { CustomProfileDef } from "./src/icpjson";
+import { ClassDef } from "./src/interface.class";
+import { ClassResolverType } from "./src/interface.resolvertype";
 
 export const GQLDateTime = asNexusMethod(GraphQLDateTime, 'date');
 export const GQLJSON = asNexusMethod(GraphQLJSON,'json');
 
   export function getSchema(collection:CustomProfileDef):any{
-    let nexusObjectTypes:{}={};
+    const nexusObjectTypes:Array<any>=[];
     collection.classes.forEach(o=>{
-      nexusObjectTypes = Object.assign(nexusObjectTypes,getNexusObject(o))
+     // console.log(getNexusObject(o))
+      nexusObjectTypes.push(getNexusObject(o));
     })
+   
     return nexusObjectTypes;
   }
 
+
+  
    function getNexusObject(obj:ClassDef):any{
     let nexusType:any;
-      
     nexusType = objectType({
         name: obj.className,
         definition(t) {
-            obj.properties.forEach(element => {
+            obj.properties.forEach((element:ClassType) => {
             getDefType(element,t);
             });
         }
       });
-      console.log(nexusType)
       return nexusType;
   }
 
@@ -106,12 +112,11 @@ export const GQLJSON = asNexusMethod(GraphQLJSON,'json');
   }
 
   function getDefObjectWithResolver(o:ClassType, t:any):any{
+    console.log(">>>>>>"+o.name)
     return t.field(o.name, {
-        type: o.type,
+        type: o.name,
         resolve(root, args, ctx) {
-          return ()=>{ 
-          //  buildquery(o); 
-          }
+        //  return ()=>{ buildquery(o); }
         //  return projectService.getById(root.projectid);
         },
     })

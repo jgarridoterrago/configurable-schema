@@ -4,11 +4,13 @@ import { FileHelper as filehelper } from "./filehelper"
 import { makeSchema } from "nexus/dist";
 import { NexusArgDef } from "nexus/dist/core";
 import { getSchema } from "../schema";
+import { CustomProfileDef } from "./icpjson";
 
 const port = process.env.PORT || 4000;
 let schema:any;
 filehelper.toObject('src/customerprofile.json').then((o:CustomProfileDef)=>{
   let types = getSchema(o);
+  console.log(types)
 schema = makeSchema({
   types: [types],
   outputs: false
