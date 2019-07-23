@@ -6,18 +6,21 @@
 				"column": "assetid",
 				"name": "assetid",
 				"label": "Asset",
-				"type": "string"
+				"type": "string",
+				"nullable":"true"
 			},
 			{
 				"column": "projectid",
 				"name": "projectid",
 				"label": "Project",
-				"type": "string"
+				"type": "string",
+				"nullable":"true"
 			},{
 				"column": "title",
 				"name": "title",
 				"label": "Title",
-				"type": "string"
+				"type": "string",
+				"nullable":"true"
 			}]
 		},
 		{
@@ -26,43 +29,50 @@
 				"column": "assetid",
 				"name": "assetid",
 				"label": "Asset",
-				"type": "string"
+				"type": "string",
+				"nullable":"true"
 			},
 			{
 				"column": "title",
 				"name": "title",
 				"label": "Title",
-				"type": "string"
+				"type": "string",
+				"nullable":"true"
 			},
 			{
 				"column": "type",
 				"name": "type",
 				"label": "Type",
-				"type": "string"
+				"type": "string",
+				"nullable":"true"
 			},
 			{
 				"column": "locationdesc",
 				"name": "locationdesc",
 				"label": "Location Description",
-				"type": "string"
+				"type": "string",
+				"nullable":"true"
 			},
 			{
 				"column": "location",
 				"name": "location",
 				"label": "Location",
-				"type": "string"
+				"type": "string",
+				"nullable":"true"
 			},
 			{
 				"column": "assetattributes",
 				"name": "assetattributes",
 				"label": "Asset Attributes",
-				"type": "string"
+				"type": "string",
+				"nullable":"true"
 			},
 			{
 				"column": "revisions",
 				"name": "revisions",
 				"label": "Revision",
-				"type": "string"
+				"type": "string",
+				"nullable":"true"
 			},
 			{
 				"column": "project",
@@ -77,6 +87,16 @@
 				}
 			}
 		]
+	}
+],
+"queries":[
+	{
+		"className":"assetsForApproval",
+		"excludes":[""],
+		"authenticate":"true",
+		"schema":"public",
+		"table":"assetsforapproval",
+		"nullable":"true"
 	}
 ]
 }
