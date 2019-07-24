@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const nexus_1 = require("nexus");
 const connection_1 = __importDefault(require("./connection"));
 const core_1 = require("nexus/dist/core");
-const builderhelper_1 = require("./builderhelper");
+const objecthelper_1 = require("./objecthelper");
 function getQueries(collection, types) {
     const nexusQueryTypes = [];
     buildNexusQuery(collection, nexusQueryTypes, types);
@@ -14,51 +14,37 @@ function getQueries(collection, types) {
 }
 exports.getQueries = getQueries;
 //create an input type for the queries using the json class definition
-function buildInputObject(obj, query, types) {
+// function buildInputObject(obj: ClassDef, query: QueryDef, types: any) {
+// 	const properties: Array<PropertyType> = getQueryFields(obj, query);
+// 	const input: any = inputObjectType({
+// 		name: obj.className + "Input",
+// 		definition(t) {
+// 			properties.forEach((element: PropertyType) => {
+// 				getDefinitionProperties(element, t);
+// 			});
+// 		}
+// 	});
+// 	attachToTypes(types, input);
+// }
+//create filter objects and add them to the list of existing objects
+function buildFilterObject(obj, query, types) {
     const properties = getQueryFields(obj, query);
-    const input = nexus_1.inputObjectType({
-        name: obj.className + "Input",
-        definition(t) {
-            properties.forEach((element) => {
-                getDefinitionProperties(element, t);
-            });
-        }
-    });
-    attachToTypes(types, input);
+    const filter = objecthelper_1.getNexusObject(obj.className, properties, 'Filter');
+    attachToTypes(types, filter);
 }
-function attachToTypes(types, inputType) {
-    types = types.push(inputType);
+function attachToTypes(types, filterType) {
+    types = types.push(filterType);
 }
-//return the nexus property type
-function getDefinitionProperties(o, t) {
-    let opts = {};
-    opts.description = o.description;
-    opts.nullable = o.nullable;
-    switch (builderhelper_1.BuilderHelper.getType(o)) {
-        case "str":
-            return t.string(o.name, { ...opts });
-        case "int":
-            return t.int(o.name, { ...opts });
-        case "float":
-            return t.float(o.name, { ...opts });
-        case "date":
-            return t.date(o.name, { ...opts });
-        case "obj": return {};
-        //return t.field(o.name, { type: o.name + "Input", ...opts });
-        case "json":
-            return t.json(o.name, { ...opts });
-        case "list":
-            return t.list.field(o.name, { type: o.type });
-    }
-    return t;
-}
-//build the nexus query object
+//build the query collection to be used by server
 function buildNexusQuery(collection, queryCollection, types) {
     collection.queries.forEach((qry) => {
+        //based on the query being generated get the matching class object
         let o = collection.classes.find(function (element) {
             return element.className == qry.className;
         });
+        //if this is the first query objected created, use this, else extend the existing query object
         if (queryCollection.length == 0) {
+            //get individual objects and add them to the queryCollection
             queryCollection.push(getQueryObject(o, qry, types));
         }
         else
@@ -67,57 +53,48 @@ function buildNexusQuery(collection, queryCollection, types) {
 }
 //used if there are no queries existing, if so extended the query object
 function getQueryObject(o, query, types) {
-    buildInputObject(o, query, types);
+    buildFilterObject(o, query, types);
     const Query = nexus_1.queryType({
         definition(t) {
             getField(t, o, query);
-            getListField(t, o);
+            getListField(t, o, query);
         }
     });
     return Query;
 }
 //used to extend the existing query objects
 function getExtendedQueryObject(o, query, types) {
-    buildInputObject(o, query, types);
+    buildFilterObject(o, query, types);
     const Query = core_1.extendType({
         type: "Query",
         definition(t) {
             getField(t, o, query);
-            getListField(t, o);
+            getListField(t, o, query);
         }
     });
     return Query;
 }
 function getField(t, o, q) {
-    return t.field(o.className, {
+    return t.field(o.className, getFieldDef(o, q));
+}
+function getListField(t, o, q) {
+    return t.list.field(o.className + "s", getFieldDef(o, q));
+}
+function getFieldDef(o, q) {
+    return {
         type: o.className,
         args: {
             filter: nexus_1.arg({
-                type: o.className + "Input",
+                type: o.className + "Filter",
                 required: false
             })
-        },
-        nullable: true,
-        async resolve(root, args, ctx) {
+        }, async resolve(root, args, ctx) {
             if (q.authenticate) { /*isAuthenticated(ctx);*/ }
             const filter = args.filter || {};
-            let type = q.className;
-            let t = await getData(q, o, filter); //await assetForApprovalService.getAssetsForApproval(assetFilter);
-            console.log(typeof t[0]);
-            return t;
+            let arr = await getData(q, o, filter); //await assetForApprovalService.getAssetsForApproval(assetFilter);
+            return arr;
         },
-    });
-}
-function getListField(t, o) {
-    return t.list.field(o.className + "s", {
-        type: o.className,
-        args: {
-            filter: nexus_1.arg({
-                type: o.className + "Input",
-                required: false
-            })
-        }
-    });
+    };
 }
 function getQueryFields(o, q) {
     let prop = o.properties;
@@ -135,9 +112,9 @@ function getWhereCriteria(args) {
     return criteria;
 }
 async function getData(q, o, args) {
-    // const properties = getQueryFields(o,q);
     const where = getWhereCriteria(args);
     let data = await connection_1.default.withSchema(q.schema).table(q.table).where(where).select('*');
+    console.log(data);
     return data;
 }
 //# sourceMappingURL=queryhelper.js.map

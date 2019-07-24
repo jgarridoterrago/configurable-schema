@@ -4,7 +4,5 @@ export interface QueryDef {
     authenticate?: boolean | false;
     table: string;
     schema: string;
-    nullable:boolean
+    nullable:boolean;
 }
-
-export interface assetsForApproval{}

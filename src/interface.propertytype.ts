@@ -5,6 +5,7 @@ export interface PropertyType {
     type: string;
     default?: string | null;
     description?: string | null;
-    nullable?: true | false;
+    nullable?: boolean | false;
     resolver?: object;
+    filterable?: boolean;
 }

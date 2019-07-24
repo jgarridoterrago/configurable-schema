@@ -30,49 +30,56 @@
 				"name": "assetid",
 				"label": "Asset",
 				"type": "string",
-				"nullable":"true"
+				"nullable":"true",
+				"filterable":"true"
 			},
 			{
 				"column": "title",
 				"name": "title",
 				"label": "Title",
 				"type": "string",
-				"nullable":"true"
+				"nullable":"true",
+				"filterable":"true"
 			},
 			{
 				"column": "type",
 				"name": "type",
 				"label": "Type",
 				"type": "string",
-				"nullable":"true"
+				"nullable":"true",
+				"filterable":"true"
 			},
 			{
 				"column": "locationdesc",
 				"name": "locationdesc",
 				"label": "Location Description",
 				"type": "string",
-				"nullable":"true"
+				"nullable":"true",
+				"filterable":"true"
 			},
 			{
 				"column": "location",
 				"name": "location",
 				"label": "Location",
 				"type": "string",
-				"nullable":"true"
+				"nullable":"true",
+				"filterable":"true"
 			},
 			{
 				"column": "assetattributes",
 				"name": "assetattributes",
 				"label": "Asset Attributes",
 				"type": "string",
-				"nullable":"true"
+				"nullable":"true",
+				"filterable":"true"
 			},
 			{
 				"column": "revisions",
 				"name": "revisions",
 				"label": "Revision",
 				"type": "string",
-				"nullable":"true"
+				"nullable":"true",
+				"filterable":"true"
 			},
 			{
 				"column": "project",
