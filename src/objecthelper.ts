@@ -1,5 +1,9 @@
 import { objectType } from "nexus";
-import { CommonFieldConfig, asNexusMethod } from "nexus/dist/core";
+import {
+	CommonFieldConfig,
+	asNexusMethod,
+	inputObjectType
+} from "nexus/dist/core";
 import { GraphQLDateTime } from "graphql-iso-date";
 import GraphQLJSON from "graphql-type-json";
 import { PropertyType } from "./interface.propertytype";
@@ -13,27 +17,45 @@ export const GQLDateTime = asNexusMethod(GraphQLDateTime, "date");
 export const GQLJSON = asNexusMethod(GraphQLJSON, "json");
 
 //return all nexus objects from the custom profile json
-export function getTypes(collection:CustomProfileDef) {
- const nexusObjectTypes: Array<any> = [];
-	collection.classes.forEach((o:ClassDef) => {
-		nexusObjectTypes.push(getNexusObject(o.className,o.properties));
+export function getTypes(collection: CustomProfileDef) {
+	const nexusObjectTypes: Array<any> = [];
+	collection.classes.forEach((o: ClassDef) => {
+		nexusObjectTypes.push(getNexusObject(o.className, o.properties));
 	});
 	return nexusObjectTypes;
 }
 
 //build each object from the json//if the modifier is filter then use only the searchable
-export function getNexusObject(name:string, properties: Array<PropertyType>, modifier:string=''): any {
+export function getNexusObject(
+	name: string,
+	properties: Array<PropertyType>
+): any {
 	let nexusType: any;
 	nexusType = objectType({
+		name: name,
+		definition(t) {
+			properties.forEach((element: PropertyType) => {
+				getDefinitionProperties(element, t);
+			});
+		}
+	});
+	return nexusType;
+}
+
+export function getNexusInput(
+	name: string,
+	properties: Array<PropertyType>,
+	modifier: string = ""
+): any {
+	let nexusType: any;
+	nexusType = inputObjectType({
 		name: name + modifier,
 		definition(t) {
-		properties.forEach((element: PropertyType) => {
-        if(modifier === 'Filter'){
-          if(element.hasOwnProperty('searchable'))
-          getDefinitionProperties(element, t);
-        }
-        else
-				  getDefinitionProperties(element, t);
+			properties.forEach((element: PropertyType) => {
+				if (modifier === "Filter") {
+					if (element.hasOwnProperty("filterable"))
+						getDefinitionProperties(element, t, true);
+				}
 			});
 		}
 	});
@@ -44,9 +66,9 @@ export function getNexusObject(name:string, properties: Array<PropertyType>, mod
 function getDefObjectWithResolver(o: PropertyType, t: any): any {
 	return t.field(o.name, {
 		type: o.name,
-		resolve(root:any, args:any, ctx:any) {
+		resolve(root: any, args: any, ctx: any) {
 			return () => {
-			//	BuilderHelper.buildquery(o);
+				//	BuilderHelper.buildquery(o);
 			};
 			//  return projectService.getById(root.projectid);
 		}
@@ -54,30 +76,42 @@ function getDefObjectWithResolver(o: PropertyType, t: any): any {
 }
 
 // build the where clause for the knex query
- function buildWhereClause(r:ClassResolverType):{}{
-  let criteria:any = {};
-  for (let i = 0; i < r.where.length; i++) {
-  //  criteria += {r.columns[index]:r.params[index]};
-  let col = r.where[i];
-  let val = r.params[i];
-  criteria = Object.assign(criteria,{col : val});
-  }
-  return criteria;
+function buildWhereClause(r: ClassResolverType,clause:any) {
+  let criteria: {} = {};
+  r.where.forEach((element:string)=>{
+    //@ts-ignore
+    criteria[element] = r.where[element];
+    clause = Object.assign(clause,criteria)
+  })
 }
 
-export function buildQueryResolver(o:PropertyType):any{
-  let resolver:ClassResolverType = o.resolver as ClassResolverType;
-  let where: any = resolver.where.length> 0 ? buildWhereClause(resolver) : {1:1};
-  let select: any = resolver.columns.length>0? resolver.columns.toString() : '*';
-  return knex.withSchema(resolver.schema).table(resolver.table).where(where).select(select); 
+
+//build out options
+function buildOpts(o: PropertyType, opts: CommonFieldConfig) {
+	let options: Array<string> = ["description", "nullable"];
+	options.forEach((element: any) => {
+		let item: {} = {};
+		//@ts-ignore
+		if (o[element]) {
+			if (element === "nullable") {
+				//@ts-ignore
+				item[element] = (o[element] == "true")?true:false;
+			}
+			//@ts-ignore
+			else { item[element] = o[element];}
+			opts = Object.assign(opts, item);
+		}
+	});
 }
 
 //get nexus property definition for each property of the object
-function getDefinitionProperties(o: PropertyType, t: any): any {
+function getDefinitionProperties(
+	o: PropertyType,
+	t: any,
+	isQuery?: boolean
+): any {
 	let opts: CommonFieldConfig = {};
-	opts.description = o.description;
-	opts.nullable = o.nullable;
-
+	buildOpts(o, opts);
 	switch (BuilderHelper.getType(o)) {
 		case "str":
 			return t.string(o.name, { ...opts });
@@ -88,7 +122,9 @@ function getDefinitionProperties(o: PropertyType, t: any): any {
 		case "date":
 			return t.date(o.name, { ...opts });
 		case "obj":
-			return getDefObjectWithResolver(o, t);
+			if (isQuery) return {}
+			//return t.field(o.name, { type: o.name + "Filter", ...opts });
+			else return getDefObjectWithResolver(o, t);
 		case "json":
 			return t.json(o.name, { ...opts });
 		case "list":
@@ -96,4 +132,3 @@ function getDefinitionProperties(o: PropertyType, t: any): any {
 	}
 	return t;
 }
-  

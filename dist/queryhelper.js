@@ -27,13 +27,18 @@ exports.getQueries = getQueries;
 // 	attachToTypes(types, input);
 // }
 //create filter objects and add them to the list of existing objects
-function buildFilterObject(obj, query, types) {
-    const properties = getQueryFields(obj, query);
-    const filter = objecthelper_1.getNexusObject(obj.className, properties, 'Filter');
-    attachToTypes(types, filter);
-}
+// function buildFilterObject(obj: ClassDef, query: QueryDef, types: any) {
+// 	const properties: Array<PropertyType> = getQueryFields(obj, query);
+// 	const filter: any = getNexusObject(obj.className, properties,'Filter');
+// 	attachToTypes(types, filter);
+// }
 function attachToTypes(types, filterType) {
     types = types.push(filterType);
+}
+function buildFilterObject(obj, query, types) {
+    const properties = getQueryFields(obj, query);
+    const filter = objecthelper_1.getNexusInput(obj.className, obj.properties, "Filter");
+    attachToTypes(types, filter);
 }
 //build the query collection to be used by server
 function buildNexusQuery(collection, queryCollection, types) {
@@ -84,14 +89,17 @@ function getFieldDef(o, q) {
     return {
         type: o.className,
         args: {
-            filter: nexus_1.arg({
+            filters: nexus_1.arg({
                 type: o.className + "Filter",
                 required: false
             })
-        }, async resolve(root, args, ctx) {
+        },
+        nullable: true,
+        async resolve(root, args, ctx) {
             if (q.authenticate) { /*isAuthenticated(ctx);*/ }
-            const filter = args.filter || {};
-            let arr = await getData(q, o, filter); //await assetForApprovalService.getAssetsForApproval(assetFilter);
+            const filters = args.filters || {};
+            let arr = await getData(q, o, filters); //await assetForApprovalService.getAssetsForApproval(assetFilter);
+            //console.log(arr)
             return arr;
         },
     };
@@ -104,17 +112,34 @@ function getQueryFields(o, q) {
     else
         return prop;
 }
-function getWhereCriteria(args) {
-    let criteria = {};
-    for (const key in args) {
-        criteria = Object.assign(criteria, { key: args[key] });
-    }
-    return criteria;
-}
+//  function getWhereCriteria(args:any):any{
+//     let criteria:any = {};
+//     for (const key in args) {
+//        criteria = Object.assign(criteria,{key:args[key]})
+//     }
+//     return criteria;
+// }
 async function getData(q, o, args) {
     const where = getWhereCriteria(args);
-    let data = await connection_1.default.withSchema(q.schema).table(q.table).where(where).select('*');
-    console.log(data);
+    let data = {};
+    if (!where) {
+        data = await connection_1.default.withSchema(q.schema).select('*').from(q.table);
+        console.log(1);
+    }
+    else {
+        data = await connection_1.default.withSchema(q.schema).table(q.table).where(where).select('*');
+        console.log(2);
+    }
+    console.log(where);
     return data;
+}
+function getWhereCriteria(args) {
+    let where = null;
+    console.log(Object.keys(args) + ">>> ");
+    for (const key in args) {
+        console.log(key + " <<<< key");
+        where = connection_1.default.raw('?? like ?', [key, args[key]]);
+    }
+    return where;
 }
 //# sourceMappingURL=queryhelper.js.map

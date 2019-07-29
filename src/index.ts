@@ -13,7 +13,7 @@ filehelper.toObject('src/customerprofile.json').then((o:CustomProfileDef)=>{
  let types = getTypes(o);
  let queries = getQueries(o,types);
   schema = makeSchema({
-    types: [types,queries],
+    types: [types, queries],
     outputs: false
   });
 const server = new ApolloServer({

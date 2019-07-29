@@ -31,7 +31,17 @@
 				"label": "Asset",
 				"type": "string",
 				"nullable":"true",
-				"filterable":"true"
+				"filterable":"true",
+				"filterOptions": "DISTINCT"
+			},
+			{
+				"column": "createdby",
+				"name": "createdby",
+				"label": "Created By",
+				"type": "string",
+				"nullable":"true",
+				"filterable":"true",
+				"filterOptions": "DISTINCT"
 			},
 			{
 				"column": "title",
@@ -39,7 +49,8 @@
 				"label": "Title",
 				"type": "string",
 				"nullable":"true",
-				"filterable":"true"
+				"filterable":"true",
+				"filterOptions": "DISTINCT"
 			},
 			{
 				"column": "type",
@@ -47,7 +58,8 @@
 				"label": "Type",
 				"type": "string",
 				"nullable":"true",
-				"filterable":"true"
+				"filterable":"true",
+				"filterOptions": "DISTINCT"
 			},
 			{
 				"column": "locationdesc",
@@ -55,7 +67,8 @@
 				"label": "Location Description",
 				"type": "string",
 				"nullable":"true",
-				"filterable":"true"
+				"filterable":"true",
+				"filterOptions": "DISTINCT"
 			},
 			{
 				"column": "location",
@@ -63,7 +76,8 @@
 				"label": "Location",
 				"type": "string",
 				"nullable":"true",
-				"filterable":"true"
+				"filterable":"true",
+				"filterOptions": "DISTINCT"
 			},
 			{
 				"column": "assetattributes",
@@ -71,7 +85,8 @@
 				"label": "Asset Attributes",
 				"type": "string",
 				"nullable":"true",
-				"filterable":"true"
+				"filterable":"true",
+				"filterOptions": "DISTINCT"
 			},
 			{
 				"column": "revisions",
@@ -79,7 +94,8 @@
 				"label": "Revision",
 				"type": "string",
 				"nullable":"true",
-				"filterable":"true"
+				"filterable":"true",
+				"filterOptions": "DISTINCT"
 			},
 			{
 				"column": "project",

@@ -3,9 +3,9 @@ export interface PropertyType {
     column: string;
     label: string;
     type: string;
-    default?: string | null;
-    description?: string | null;
-    nullable?: boolean | false;
+    default?: string;
+    description?: string;
+    nullable?: boolean;
     resolver?: object;
     filterable?: boolean;
 }

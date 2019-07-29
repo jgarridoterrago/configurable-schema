@@ -8,6 +8,7 @@ import { PropertyType } from "./interface.propertytype";
 import knex from "./connection";
 import {  extendType, objectType, CommonFieldConfig } from "nexus/dist/core";
 import { BuilderHelper } from "./builderhelper";
+import { getNexusInput } from "./objecthelper";
 
 export function getQueries(collection: CustomProfileDef, types: any): any {
 	const nexusQueryTypes: Array<QueryDef> = [];
@@ -42,14 +43,7 @@ function attachToTypes(types: any, filterType: any) {
 
 function buildFilterObject(obj: ClassDef, query: QueryDef, types: any) {
     	const properties: Array<PropertyType> = getQueryFields(obj, query);
-    	const filter: any = objectType({
-    		name: obj.className + "Filter",
-    		definition(t) {
-    			properties.forEach((element: PropertyType) => {
-    				getDefinitionProperties(element, t);
-    			});
-    		}
-    	});
+    	const filter: any = getNexusInput(obj.className,obj.properties,"Filter");
     	attachToTypes(types, filter);
     }
 
@@ -102,7 +96,7 @@ function getField(t:any,o:ClassDef,q?:QueryDef):any{
     return 	t.field(o.className, getFieldDef(o,q));
 }
 
-function getListField(t:any,o:ClassDef,q:QueryDef):any{
+function getListField(t:any, o:ClassDef, q:QueryDef):any{
     return t.list.field(o.className + "s", getFieldDef(o,q))
 }
 
@@ -110,14 +104,17 @@ function getFieldDef(o:ClassDef,q:QueryDef):any{
     return {
         type: o.className,
         args: {
-            filter: arg({
+            filters: arg({
                 type: o.className + "Filter",
                 required: false
             })
-        }, async resolve(root:any, args:any, ctx:any) {
+		},  
+		nullable:true,
+		async resolve(root:any, args:any, ctx:any) {
             if(q.authenticate){/*isAuthenticated(ctx);*/}
-            const filter = args.filter || {};
-            let arr:any = await getData(q,o,filter);//await assetForApprovalService.getAssetsForApproval(assetFilter);
+            const filters = args.filters || {};
+			let arr:any = await getData(q,o,filters);//await assetForApprovalService.getAssetsForApproval(assetFilter);
+			//console.log(arr)
             return arr 
           },
     };
@@ -132,40 +129,35 @@ function getQueryFields(o: ClassDef, q: QueryDef): Array<PropertyType> {
 	} else return prop;
 }
 
- function getWhereCriteria(args:any):any{
-    let criteria:any = {};
-    for (const key in args) {
-       criteria = Object.assign(criteria,{key:args[key]})
-    }
-    return criteria;
-}
+//  function getWhereCriteria(args:any):any{
+//     let criteria:any = {};
+//     for (const key in args) {
+//        criteria = Object.assign(criteria,{key:args[key]})
+//     }
+//     return criteria;
+// }
 
 async function getData(q:QueryDef,o:ClassDef,args:any):Promise<any>{
     const where = getWhereCriteria(args);
-    let data:any =  await knex.withSchema(q.schema).table(q.table).where(where).select('*'); 
-    console.log(data)
+	let data:any = {};
+    if(!where){
+		data =  await knex.withSchema(q.schema).select('*').from(q.table);
+		console.log(1) 
+	}
+    else{
+		data = await knex.withSchema(q.schema).table(q.table).where(where).select('*');
+		console.log(2) 
+	}
+	console.log(where)
     return data;
 }
 
-function getDefinitionProperties(o:PropertyType, t:any) {
-    let opts: CommonFieldConfig = {};
-    opts.description = o.description;
-    opts.nullable = o.nullable;
-    switch (BuilderHelper.getType(o)) {
-        case "str":
-            return t.string(o.name, { ...opts });
-        case "int":
-            return t.int(o.name, { ...opts });
-        case "float":
-            return t.float(o.name, { ...opts });
-        case "date":
-            return t.date(o.name, { ...opts });
-        case "obj": return {};
-        //return t.field(o.name, { type: o.name + "Input", ...opts });
-        case "json":
-            return t.json(o.name, { ...opts });
-        case "list":
-            return t.list.field(o.name, { type: o.type });
-    }
-    return t;
+function getWhereCriteria(args:any):any {
+  let where:any=null;
+  console.log(Object.keys(args)+">>> ")
+ 	for (const key in args) {
+		console.log(key+" <<<< key")
+		where = knex.raw('?? like ?',[key,args[key]]);
+	}
+    return where;
 }
