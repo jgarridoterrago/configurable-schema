@@ -8,7 +8,7 @@ import { GraphQLDateTime } from "graphql-iso-date";
 import GraphQLJSON from "graphql-type-json";
 import { PropertyType } from "./interface.propertytype";
 import { ClassDef } from "./interface.class";
-import { ClassResolverType } from "./interface.resolvertype";
+import {  ResolverDef } from "./interface.resolvertype";
 import { BuilderHelper } from "./builderhelper";
 import { CustomProfileDef } from "./icpjson";
 import knex from "./connection";
@@ -64,27 +64,30 @@ export function getNexusInput(
 
 //return the resolver for object types within an object
 function getDefObjectWithResolver(o: PropertyType, t: any): any {
-	return t.field(o.name, {
+	return t.list.field(o.name, {
 		type: o.name,
-		resolve(root: any, args: any, ctx: any) {
-			return () => {
-				//	BuilderHelper.buildquery(o);
-			};
-			//  return projectService.getById(root.projectid);
+		nullable:true,
+		 async resolve(root: any, args: any, ctx: any) {		
+				let resolver:ResolverDef = o.resolver as ResolverDef;
+				let fk:{} = {
+						//it would be better if each object had its name + id; ie assetid exists in the projects table
+						column: resolver.columns[0],
+						value: root[resolver.params[0]]
+					}
+			 let data:any = await knex.withSchema(resolver.schema).table(resolver.table).whereRaw(`:column: = :value`,fk).select('*');
+			console.log(data)
+			return data;
+			 // d.then((result:any)=> {return result})
+			 //return getData(resolver,fk).then((result:any)=>{ console.log(result) return result})
+			//return {title:'hello',assetid:'444',projectid:'3333'};
 		}
 	});
 }
 
-// build the where clause for the knex query
-function buildWhereClause(r: ClassResolverType,clause:any) {
-  let criteria: {} = {};
-  r.where.forEach((element:string)=>{
-    //@ts-ignore
-    criteria[element] = r.where[element];
-    clause = Object.assign(clause,criteria)
-  })
+async function getData(resolver:ResolverDef,fk:{}):Promise<any>{
+	console.log("here")
+	return await knex.withSchema(resolver.schema).table(resolver.table).whereRaw(`:column: = :value`,fk).select('*');
 }
-
 
 //build out options
 function buildOpts(o: PropertyType, opts: CommonFieldConfig) {
@@ -105,11 +108,11 @@ function buildOpts(o: PropertyType, opts: CommonFieldConfig) {
 }
 
 //get nexus property definition for each property of the object
-function getDefinitionProperties(
+async function getDefinitionProperties(
 	o: PropertyType,
 	t: any,
 	isQuery?: boolean
-): any {
+): Promise<any> {
 	let opts: CommonFieldConfig = {};
 	buildOpts(o, opts);
 	switch (BuilderHelper.getType(o)) {
@@ -122,9 +125,12 @@ function getDefinitionProperties(
 		case "date":
 			return t.date(o.name, { ...opts });
 		case "obj":
-			if (isQuery) return {}
-			//return t.field(o.name, { type: o.name + "Filter", ...opts });
-			else return getDefObjectWithResolver(o, t);
+			if (isQuery){
+				return t.field(o.name, { type: o.name , ...opts });
+			}
+			else {
+				return getDefObjectWithResolver(o, t);
+			}
 		case "json":
 			return t.json(o.name, { ...opts });
 		case "list":

@@ -8,6 +8,7 @@ const core_1 = require("nexus/dist/core");
 const graphql_iso_date_1 = require("graphql-iso-date");
 const graphql_type_json_1 = __importDefault(require("graphql-type-json"));
 const builderhelper_1 = require("./builderhelper");
+const connection_1 = __importDefault(require("./connection"));
 exports.GQLDateTime = core_1.asNexusMethod(graphql_iso_date_1.GraphQLDateTime, "date");
 exports.GQLJSON = core_1.asNexusMethod(graphql_type_json_1.default, "json");
 //return all nexus objects from the custom profile json
@@ -53,21 +54,18 @@ exports.getNexusInput = getNexusInput;
 function getDefObjectWithResolver(o, t) {
     return t.field(o.name, {
         type: o.name,
-        resolve(root, args, ctx) {
-            return () => {
-                //	BuilderHelper.buildquery(o);
+        nullable: true,
+        async resolve(root, args, ctx) {
+            let resolver = o.resolver;
+            let fk = {
+                //it would be better if each object had its name + id; ie assetid exists in the projects table
+                column: resolver.columns[0],
+                value: root[resolver.params[0]]
             };
-            //  return projectService.getById(root.projectid);
+            //		console.log(await knex.withSchema(resolver.schema).table(resolver.table).whereRaw(`:column: = :value`,fk).select('*'));
+            return await connection_1.default.withSchema(resolver.schema).table(resolver.table).whereRaw(`:column: = :value`, fk).select('*');
+            //return {title:'hello',assetid:'444',projectid:'3333'};
         }
-    });
-}
-// build the where clause for the knex query
-function buildWhereClause(r, clause) {
-    let criteria = {};
-    r.where.forEach((element) => {
-        //@ts-ignore
-        criteria[element] = r.where[element];
-        clause = Object.assign(clause, criteria);
     });
 }
 //build out options
@@ -90,7 +88,7 @@ function buildOpts(o, opts) {
     });
 }
 //get nexus property definition for each property of the object
-function getDefinitionProperties(o, t, isQuery) {
+async function getDefinitionProperties(o, t, isQuery) {
     let opts = {};
     buildOpts(o, opts);
     switch (builderhelper_1.BuilderHelper.getType(o)) {
@@ -103,11 +101,12 @@ function getDefinitionProperties(o, t, isQuery) {
         case "date":
             return t.date(o.name, { ...opts });
         case "obj":
-            if (isQuery)
-                return {};
-            //return t.field(o.name, { type: o.name + "Filter", ...opts });
-            else
+            if (isQuery) {
+                return t.field(o.name, { type: o.name, ...opts });
+            }
+            else {
                 return getDefObjectWithResolver(o, t);
+            }
         case "json":
             return t.json(o.name, { ...opts });
         case "list":

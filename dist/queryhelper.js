@@ -124,22 +124,31 @@ async function getData(q, o, args) {
     let data = {};
     if (!where) {
         data = await connection_1.default.withSchema(q.schema).select('*').from(q.table);
-        console.log(1);
     }
     else {
         data = await connection_1.default.withSchema(q.schema).table(q.table).where(where).select('*');
-        console.log(2);
     }
-    console.log(where);
+    console.log(connection_1.default.withSchema(q.schema).table(q.table).where(where).select('*').toString());
     return data;
 }
 function getWhereCriteria(args) {
-    let where = null;
-    console.log(Object.keys(args) + ">>> ");
+    let where = '';
+    let statement = '';
+    let include = (Object.keys(args).length > 1) ? 'and ' : '';
+    let obj = {};
+    let values = {};
     for (const key in args) {
-        console.log(key + " <<<< key");
-        where = connection_1.default.raw('?? like ?', [key, args[key]]);
+        statement += `:${key}: like :${args[key]} ${include}`;
+        //@ts-ignore
+        obj[key] = key;
+        //@ts-ignore
+        obj[args[key]] = `%${args[key]}%`;
+        values = Object.assign(values, obj);
     }
+    //remove the last occurance of 'and'
+    statement = (include) ? statement.substring(0, (statement.length) - 5) : statement;
+    where = connection_1.default.raw(statement, values);
+    console.log(where.toString());
     return where;
 }
 //# sourceMappingURL=queryhelper.js.map

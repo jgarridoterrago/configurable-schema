@@ -1,5 +1,4 @@
 import knex from "./connection";
-import { ClassResolverType } from "./interface.resolvertype";
 import { ClassDef } from "./interface.class";
 import { QueryDef } from "./interface.query";
 import { PropertyType } from "./interface.propertytype";

@@ -16,6 +16,7 @@ filehelper.toObject('src/customerprofile.json').then((o:CustomProfileDef)=>{
     types: [types, queries],
     outputs: false
   });
+  
 const server = new ApolloServer({
   schema
 });

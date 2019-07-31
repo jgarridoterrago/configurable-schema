@@ -103,7 +103,7 @@
 				"label": "Project",
 				"type": "object",
 				"resolver": {
-					"table": "assets",
+					"table": "projects",
 					"schema": "public",
 					"columns": ["assetid"],
 					"params": ["assetid"]

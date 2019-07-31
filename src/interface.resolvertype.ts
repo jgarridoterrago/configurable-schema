@@ -1,4 +1,4 @@
-export interface ClassResolverType {
+export interface ResolverDef {
     table:string
     schema:string
     columns:[string] //display data from here

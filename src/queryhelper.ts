@@ -142,22 +142,33 @@ async function getData(q:QueryDef,o:ClassDef,args:any):Promise<any>{
 	let data:any = {};
     if(!where){
 		data =  await knex.withSchema(q.schema).select('*').from(q.table);
-		console.log(1) 
 	}
     else{
 		data = await knex.withSchema(q.schema).table(q.table).where(where).select('*');
-		console.log(2) 
 	}
-	console.log(where)
+	console.log(knex.withSchema(q.schema).table(q.table).where(where).select('*').toString())
     return data;
 }
 
 function getWhereCriteria(args:any):any {
-  let where:any=null;
-  console.log(Object.keys(args)+">>> ")
+  let where:any = '';
+  let statement:string = ''
+  let include:string = (Object.keys(args).length>1)? 'and ' : '';
+  let obj:{} = {}
+  let values:{} = {}
+  
  	for (const key in args) {
-		console.log(key+" <<<< key")
-		where = knex.raw('?? like ?',[key,args[key]]);
+		 statement += `:${key}: like :${args[key]} ${include}`;
+		//@ts-ignore
+		obj[key] = key
+		//@ts-ignore
+		obj[args[key]] = `%${args[key]}%`
+		values = Object.assign(values,obj)
 	}
+	//remove the last occurance of 'and'
+	statement = (include)? statement.substring(0,(statement.length)-5):statement;
+
+	where = knex.raw(statement,values);
+	console.log(where.toString())
     return where;
 }
